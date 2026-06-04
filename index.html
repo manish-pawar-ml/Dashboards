@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claude Spend Intelligence · Leadership Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="masthead">
+  <div class="mast-left">
+    <div class="logo-mark" aria-hidden="true"></div>
+    <div>
+      <h1>Claude Spend Intelligence</h1>
+      <p class="subtitle">Organizational usage &amp; cost briefing · gross spend in USD</p>
+    </div>
+  </div>
+  <div class="mast-right">
+    <div class="scope-readout">
+      <span class="scope-label">Viewing</span>
+      <span class="scope-value" id="scopeValue">All Organizations</span>
+    </div>
+  </div>
+</header>
+
+<section class="filters" aria-label="Filters">
+  <div class="filter-group primary-filter">
+    <label for="f-l1">L1 Leader / Org</label>
+    <select id="f-l1"></select>
+  </div>
+  <div class="filter-group">
+    <label for="f-l2">L2 Sub-team</label>
+    <select id="f-l2"></select>
+  </div>
+  <div class="filter-group">
+    <label for="f-product">Product</label>
+    <select id="f-product"></select>
+  </div>
+  <div class="filter-group">
+    <label for="f-model">Model</label>
+    <select id="f-model"></select>
+  </div>
+  <button id="resetBtn" class="reset-btn" type="button">Reset</button>
+</section>
+
+<section class="kpis" id="kpis" aria-label="Key metrics"></section>
+
+<section class="insights" aria-label="Insights">
+  <div class="section-head">
+    <h2>Signals &amp; Insights</h2>
+    <span class="section-rule"></span>
+  </div>
+  <div class="insight-grid" id="insightGrid"></div>
+</section>
+
+<section class="charts">
+  <div class="card chart-card span-2">
+    <div class="card-head">
+      <h3>Spend by L2 Leader</h3>
+      <span class="card-sub" id="l2ChartSub">teams within scope</span>
+    </div>
+    <div class="chart-wrap tall"><canvas id="l2Chart"></canvas></div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="card-head">
+      <h3>Tokens by Model</h3>
+      <span class="card-sub">prompt + completion</span>
+    </div>
+    <div class="chart-wrap tall"><canvas id="modelChart"></canvas></div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="card-head">
+      <h3>Spend by Product</h3>
+      <span class="card-sub">gross USD</span>
+    </div>
+    <div class="chart-wrap"><canvas id="productChart"></canvas></div>
+  </div>
+
+  <div class="card chart-card span-2">
+    <div class="card-head">
+      <h3>Top Spenders</h3>
+      <span class="card-sub">highest gross spend, top 15</span>
+    </div>
+    <div class="chart-wrap tall"><canvas id="topUsersChart"></canvas></div>
+  </div>
+</section>
+
+<section class="tables">
+  <div class="card table-card">
+    <div class="card-head with-action">
+      <div>
+        <h3>L2 Leader Pivot</h3>
+        <span class="card-sub">spend rolled up by sub-team</span>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table id="l2Pivot" class="data-table">
+        <thead>
+          <tr>
+            <th data-sort="name" class="sortable">L2 Leader</th>
+            <th data-sort="people" class="sortable num">People</th>
+            <th data-sort="spend" class="sortable num sorted-desc">Gross Spend</th>
+            <th data-sort="pct" class="sortable num">% of Scope</th>
+            <th data-sort="tokens" class="sortable num">Tokens</th>
+            <th data-sort="requests" class="sortable num">Requests</th>
+            <th data-sort="avg" class="sortable num">Avg / Person</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="card-head with-action">
+      <div>
+        <h3>People in Scope</h3>
+        <span class="card-sub" id="empCountSub"></span>
+      </div>
+      <input type="search" id="empSearch" class="search-input" placeholder="Search name, title, dept…" />
+    </div>
+    <div class="table-scroll">
+      <table id="empTable" class="data-table">
+        <thead>
+          <tr>
+            <th data-sort="name" class="sortable">Employee</th>
+            <th data-sort="title">Title</th>
+            <th data-sort="dept">Department</th>
+            <th data-sort="l2">L2 Team</th>
+            <th data-sort="spend" class="sortable num sorted-desc">Spend</th>
+            <th data-sort="tokens" class="sortable num">Tokens</th>
+            <th data-sort="requests" class="sortable num">Requests</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-foot">
+      <span id="empShowing"></span>
+      <div class="pager">
+        <button id="prevPage" type="button">‹ Prev</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage" type="button">Next ›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>Claude Spend Intelligence · generated for leadership review</span>
+  <span id="footStamp"></span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
